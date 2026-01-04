@@ -1,6 +1,6 @@
+import { generateToken } from "../utils/auth.js";
 import prisma from "../config/db.js";
 import  bcrypt from "bcrypt";
-
 export const register=async(req,res)=>{
     try {
         const {email,name,password,roleId}=req.body
@@ -17,7 +17,8 @@ export const register=async(req,res)=>{
                 roleId:parseInt(roleId)
             }
         })
-        res.status(201).json({message:"Usuario registrado con exsito",userId:user.id})
+        const token=generateToken(user.id,user.roleId)
+        res.status(201).json({message:"Usuario registrado y logueado con exito",userId:user.id,token})
     
     } catch (error) {
         // console.log(error)
@@ -32,10 +33,11 @@ export const login=async(req,res)=>{
             return res.status(400).json({message:"Credenciales Invalidas"})
         }
         const isMatch= await bcrypt.compare(password,user.password)
+        const token= generateToken(user.id,user.roleId)
         if(!isMatch){
             return res.status(400).json({message:"Crendenciales Invalidas"})
         }
-        res.status(200).json({message:"Bienvenido",user:{name:user.name}})
+        res.status(200).json({message:"Bienvenido",user:{name:user.name},token})
         
     } catch (error) {
         res.status(500).json({error:error.message})
